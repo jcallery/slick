@@ -293,13 +293,23 @@
         if (_.options.fade === false) {
             transition[_.transitionType] = _.transformType + ' ' + _.options.speed + 'ms ' + _.options.cssEase;
         } else {
-            transition[_.transitionType] = 'opacity ' + _.options.speed + 'ms ' + _.options.cssEase;
+            if (!slide){
+                transition[_.transitionType] = 'opacity ' + _.options.speed/2 + 'ms ' + _.options.cssEase;
+            }
+            else {
+                transition[_.transitionType] = 'opacity ' + _.options.speed + 'ms ' + _.options.cssEase;
+            }
         }
 
         if (_.options.fade === false) {
             _.$slideTrack.css(transition);
         } else {
-            _.$slides.eq(slide).css(transition);
+            if (!slide){
+                _.$slides.css(transition);
+            }
+            else {
+                _.$slides.eq(slide).css(transition);
+            }
         }
 
     };
@@ -587,7 +597,7 @@
         _.$list.off('.slick');
         $(window).off('.slick-' + _.instanceUid);
         $(document).off('.slick-' + _.instanceUid);
-        
+
     };
 
     Slick.prototype.disableTransition = function(slide) {
@@ -606,20 +616,29 @@
     };
 
     Slick.prototype.fadeSlide = function(slideIndex, callback) {
-
         var _ = this;
 
         if (_.cssTransitions === false) {
 
-            _.$slides.eq(slideIndex).css({
-                zIndex: 1000
+            _.$slides.animate({
+                opacity: 0
+            }, _.options.speed/2, _.options.easing, function(){
+                _.$slides.eq(slideIndex).css({
+                    zIndex: 1000
+                });
+
+                _.$slides.eq(slideIndex).animate({
+                    opacity: 1
+                }, _.options.speed, _.options.easing, callback);
             });
 
-            _.$slides.eq(slideIndex).animate({
-                opacity: 1
-            }, _.options.speed, _.options.easing, callback);
-
         } else {
+
+            _.applyTransition();
+
+            _.$slides.css({
+                opacity: 0
+            });
 
             _.applyTransition(slideIndex);
 
@@ -1139,11 +1158,11 @@
         if(_.options.vertical === false) {
             _.slideWidth = Math.ceil(_.listWidth / _.options.slidesToShow);
             _.$slideTrack.width(Math.ceil((_.slideWidth * _.$slideTrack.children('.slick-slide').length)));
-        
+
         } else {
             _.slideWidth = Math.ceil(_.listWidth);
             _.$slideTrack.height(Math.ceil((_.$slides.first().outerHeight(true) * _.$slideTrack.children('.slick-slide').length)));
-        
+
         }
 
         var offset = _.$slides.first().outerWidth(true) - _.$slides.first().width();
